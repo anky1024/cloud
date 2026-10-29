@@ -1,4 +1,4 @@
-name: Ubuntu Cloud PC (Card-Free)
+name: Ubuntu Cloud PC (Card-Free Fixed)
 
 on: 
   workflow_dispatch: 
@@ -16,19 +16,22 @@ jobs:
         echo "runner:Password123" | sudo chpasswd
         sudo systemctl restart xrdp
 
-    - name: Download & Install Localtonet
+    - name: Download & Extract Localtonet Client
       run: |
-        # Download and extract Localtonet client directly
-        curl -L https://localtonet.com -o localtonet.zip
-        sudo apt install -y unzip
-        unzip localtonet.zip
+        # Download the correct Linux x64 tarball archive
+        curl -L https://localtonet.com -o localtonet.tar.gz
+        
+        # Extract the binary using tar instead of unzip
+        tar -xzf localtonet.tar.gz
+        
+        # Ensure executable permissions are assigned
         chmod +x localtonet
 
     - name: Start Cloud PC Tunnel
       run: |
         # Run Localtonet client in the background using your free auth token
         # REPLACE 'YOUR_LOCALTONET_AUTH_TOKEN' WITH THE TOKEN FROM YOUR DASHBOARD
-        ./localtonet -token YOUR_LOCALTONET_AUTH_TOKEN &
+        ./localtonet -token SzLfZAPg6yalvtKxMhDenrd0Cjq4pm52N &
         
         # Keep the session online for up to 6 hours
         sleep 21600 
