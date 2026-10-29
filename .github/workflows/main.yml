@@ -1,14 +1,18 @@
 name: Ubuntu Cloud PC
 
 on: 
-  workflow_dispatch: # Allows you to start the PC manually with a button click
+  workflow_dispatch: # Run manually with a button click
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Install Desktop Environment & RDP Server
+    - name: Clean Old Repos & Install Desktop
       run: |
+        # REMOVE COPIES OF THE OLD BROKEN AMAZON/NGROK LISTS
+        sudo rm -f /etc/apt/sources.list.d/ngrok.list
+        sudo rm -f /etc/apt/sources.list.p/ngrok.list
+        
         sudo apt update
         # Install XFCE Desktop and XRDP (Remote Desktop Protocol)
         sudo apt install -y xfce4 xfce4-goodies xrdp
@@ -18,12 +22,12 @@ jobs:
         echo "runner:Password123" | sudo chpasswd
         sudo systemctl restart xrdp
 
-    - name: Download & Install Ngrok
+    - name: Download & Install Ngrok Official
       run: |
-        # FIXED: Correct Ngrok repository keys and sources
-        curl -s https://amazonaws.com | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-        echo "deb https://amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
-        sudo apt update && sudo apt install ngrok
+        # Download official Ngrok binary directly to bypass APT repository headaches entirely
+        curl -s https://equinox.io -o ngrok.tgz
+        sudo tar -xzf ngrok.tgz -C /usr/local/bin
+        rm ngrok.tgz
 
     - name: Start Cloud PC Tunnel & Print URL
       env:
@@ -32,17 +36,17 @@ jobs:
         # Connect to your Ngrok account
         ngrok config add-authtoken $NGROK_AUTH_TOKEN
         
-        # Start the tunnel in the background
+        # Start the tunnel in the background for RDP (Port 3389)
         ngrok tcp 3389 &
         
-        # Wait 5 seconds for the tunnel to establish
+        # Wait 5 seconds for the connection to secure
         sleep 5
         
-        # FIXED: Fetch and display the active endpoint URL inside the GitHub log
+        # Print the live RDP link clearly in your GitHub logs
         echo "=========================================="
-        echo "YOUR RDP ADDRESS IS BELOW:"
+        echo "YOUR REMOTE DESKTOP ADDRESS IS BELOW:"
         curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
         echo "=========================================="
         
-        # Keeps the GitHub Action running for 6 hours
+        # Keep the machine alive for 6 hours
         sleep 21600 
