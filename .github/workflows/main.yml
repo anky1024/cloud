@@ -9,7 +9,7 @@ jobs:
     steps:
     - name: Clean Old Repos & Install Desktop
       run: |
-        # REMOVE COPIES OF THE OLD BROKEN AMAZON/NGROK LISTS
+        # Wipe old corrupted repository records if any persist
         sudo rm -f /etc/apt/sources.list.d/ngrok.list
         sudo rm -f /etc/apt/sources.list.p/ngrok.list
         
@@ -18,35 +18,33 @@ jobs:
         sudo apt install -y xfce4 xfce4-goodies xrdp
         # Configure XRDP to use XFCE
         echo "xfce4-session" > ~/.xsession
-        # Set a password for the 'runner' user
+        # Set a password for the remote 'runner' account
         echo "runner:Password123" | sudo chpasswd
         sudo systemctl restart xrdp
 
     - name: Download & Install Ngrok Official
       run: |
-        # Download official Ngrok binary directly to bypass APT repository headaches entirely
-        curl -s https://equinox.io -o ngrok.tgz
-        sudo tar -xzf ngrok.tgz -C /usr/local/bin
-        rm ngrok.tgz
+        # FIXED: Using official verified Ngrok CDN link with automatic extraction 
+        curl -fsSL https://bin.ngrok.com/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz | sudo tar -xz -C /usr/local/bin
 
     - name: Start Cloud PC Tunnel & Print URL
       env:
         NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
       run: |
-        # Connect to your Ngrok account
+        # Authorize Ngrok
         ngrok config add-authtoken $NGROK_AUTH_TOKEN
         
-        # Start the tunnel in the background for RDP (Port 3389)
+        # Start the background tunnel routing RDP traffic (Port 3389)
         ngrok tcp 3389 &
         
-        # Wait 5 seconds for the connection to secure
+        # Wait for initialization
         sleep 5
         
-        # Print the live RDP link clearly in your GitHub logs
+        # Fetch the address directly from Ngrok's local interface
         echo "=========================================="
         echo "YOUR REMOTE DESKTOP ADDRESS IS BELOW:"
         curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
         echo "=========================================="
         
-        # Keep the machine alive for 6 hours
+        # Keep the session online for up to 6 hours
         sleep 21600 
