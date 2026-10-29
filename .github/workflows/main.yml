@@ -1,4 +1,4 @@
-name: Ubuntu Cloud PC (Card-Free Fixed)
+name: Ubuntu Cloud PC (100% Free & Card-Less)
 
 on: 
   workflow_dispatch: 
@@ -10,28 +10,31 @@ jobs:
     - name: Install Desktop Environment & RDP Server
       run: |
         sudo apt update
-        # Install XFCE Desktop and XRDP
+        # Install XFCE Desktop and XRDP (Remote Desktop Protocol)
         sudo apt install -y xfce4 xfce4-goodies xrdp
+        # Configure XRDP to use XFCE
         echo "xfce4-session" > ~/.xsession
+        # Set login password for the runner user
         echo "runner:Password123" | sudo chpasswd
         sudo systemctl restart xrdp
 
-    - name: Download & Extract Localtonet Client
+    - name: Install Official Pagekite Client
       run: |
-        # Download the correct Linux x64 tarball archive
-        curl -L https://localtonet.com -o localtonet.tar.gz
-        
-        # Extract the binary using tar instead of unzip
-        tar -xzf localtonet.tar.gz
-        
-        # Ensure executable permissions are assigned
-        chmod +x localtonet
+        # Install pagekite natively from official Ubuntu mirrors (no download errors possible)
+        sudo apt install -y pagekite
 
-    - name: Start Cloud PC Tunnel
+    - name: Start Cloud PC Tunnel & Print URL
       run: |
-        # Run Localtonet client in the background using your free auth token
-        # REPLACE 'YOUR_LOCALTONET_AUTH_TOKEN' WITH THE TOKEN FROM YOUR DASHBOARD
-        ./localtonet -token SzLfZAPg6yalvtKxMhDenrd0Cjq4pm52N &
+        # Create a completely free tunnel for RDP (Port 3389)
+        # REPLACE 'yourname' below with a unique name (e.g., cloudpc789)
+        pagekite.py 3389 yourname.pagekite.me &
         
-        # Keep the session online for up to 6 hours
-        sleep 21600 
+        # Give the tunnel 5 seconds to boot up
+        sleep 5
+        
+        echo "=========================================="
+        echo "YOUR RDP ADDRESS IS: yourname.pagekite.me"
+        echo "=========================================="
+        
+        # Keep the machine alive for 6 hours
+        sleep 21600
