@@ -27,13 +27,13 @@ jobs:
       run: |
         # Create a completely free tunnel for RDP (Port 3389)
         # REPLACE 'yourname' below with a unique name (e.g., cloudpc789)
-        pagekite.py 3389 yourname.pagekite.me &
+        pagekite.py 3389 Aetherone.pagekite.me &
         
         # Give the tunnel 5 seconds to boot up
         sleep 5
         
         echo "=========================================="
-        echo "YOUR RDP ADDRESS IS: yourname.pagekite.me"
+        echo "YOUR RDP ADDRESS IS: Aetherone.pagekite.me"
         echo "=========================================="
         
         # Keep the machine alive for 6 hours
