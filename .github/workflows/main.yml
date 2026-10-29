@@ -1,4 +1,4 @@
-name: Ubuntu Cloud PC (100% Free & Card-Less)
+name: Ubuntu Cloud PC (Pagekite Fixed)
 
 on: 
   workflow_dispatch: 
@@ -20,14 +20,18 @@ jobs:
 
     - name: Install Official Pagekite Client
       run: |
-        # Install pagekite natively from official Ubuntu mirrors (no download errors possible)
+        # Install pagekite natively from official Ubuntu mirrors
         sudo apt install -y pagekite
 
     - name: Start Cloud PC Tunnel & Print URL
       run: |
-        # Create a completely free tunnel for RDP (Port 3389)
-        # REPLACE 'yourname' below with a unique name (e.g., cloudpc789)
-        pagekite.py 3389 Aetherone.pagekite.me &
+        # 1. AUTHENTICATE YOUR PAGEKITE ACCOUNT
+        # REPLACE 'Aetherone.pagekite.me' with your kite name if different
+        # REPLACE 'YOUR_PAGEKITE_SECRET_KEY' with the key emailed to you by Pagekite
+        pagekite --clean --add Aetherone.pagekite.me +654754
+        
+        # 2. START THE TUNNEL (FIXED: Using 'pagekite' binary command instead of pagekite.py)
+        pagekite 3389 Aetherone.pagekite.me &
         
         # Give the tunnel 5 seconds to boot up
         sleep 5
