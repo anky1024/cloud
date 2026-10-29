@@ -1,50 +1,34 @@
-name: Ubuntu Cloud PC
+name: Ubuntu Cloud PC (Card-Free)
 
 on: 
-  workflow_dispatch: # Run manually with a button click
+  workflow_dispatch: 
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Clean Old Repos & Install Desktop
+    - name: Install Desktop Environment & RDP Server
       run: |
-        # Wipe old corrupted repository records if any persist
-        sudo rm -f /etc/apt/sources.list.d/ngrok.list
-        sudo rm -f /etc/apt/sources.list.p/ngrok.list
-        
         sudo apt update
-        # Install XFCE Desktop and XRDP (Remote Desktop Protocol)
+        # Install XFCE Desktop and XRDP
         sudo apt install -y xfce4 xfce4-goodies xrdp
-        # Configure XRDP to use XFCE
         echo "xfce4-session" > ~/.xsession
-        # Set a password for the remote 'runner' account
         echo "runner:Password123" | sudo chpasswd
         sudo systemctl restart xrdp
 
-    - name: Download & Install Ngrok Official
+    - name: Download & Install Localtonet
       run: |
-        # FIXED: Using official verified Ngrok CDN link with automatic extraction 
-        curl -fsSL https://bin.ngrok.com/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz | sudo tar -xz -C /usr/local/bin
+        # Download and extract Localtonet client directly
+        curl -L https://localtonet.com -o localtonet.zip
+        sudo apt install -y unzip
+        unzip localtonet.zip
+        chmod +x localtonet
 
-    - name: Start Cloud PC Tunnel & Print URL
-      env:
-        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+    - name: Start Cloud PC Tunnel
       run: |
-        # Authorize Ngrok
-        ngrok config add-authtoken $NGROK_AUTH_TOKEN
-        
-        # Start the background tunnel routing RDP traffic (Port 3389)
-        ngrok tcp 3389 &
-        
-        # Wait for initialization
-        sleep 5
-        
-        # Fetch the address directly from Ngrok's local interface
-        echo "=========================================="
-        echo "YOUR REMOTE DESKTOP ADDRESS IS BELOW:"
-        curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
-        echo "=========================================="
+        # Run Localtonet client in the background using your free auth token
+        # REPLACE 'YOUR_LOCALTONET_AUTH_TOKEN' WITH THE TOKEN FROM YOUR DASHBOARD
+        ./localtonet -token YOUR_LOCALTONET_AUTH_TOKEN &
         
         # Keep the session online for up to 6 hours
         sleep 21600 
