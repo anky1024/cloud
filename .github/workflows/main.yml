@@ -14,25 +14,35 @@ jobs:
         sudo apt install -y xfce4 xfce4-goodies xrdp
         # Configure XRDP to use XFCE
         echo "xfce4-session" > ~/.xsession
-        # Set a password for the 'runner' user (default GitHub runner user)
+        # Set a password for the 'runner' user
         echo "runner:Password123" | sudo chpasswd
         sudo systemctl restart xrdp
 
     - name: Download & Install Ngrok
       run: |
+        # FIXED: Correct Ngrok repository keys and sources
         curl -s https://amazonaws.com | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-        echo "deb https://amazonaws.com buster main" | sudo tee /etc/apt/sources.list.p/ngrok.list
+        echo "deb https://amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
         sudo apt update && sudo apt install ngrok
 
-    - name: Start Cloud PC Tunnel
+    - name: Start Cloud PC Tunnel & Print URL
       env:
         NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
       run: |
         # Connect to your Ngrok account
         ngrok config add-authtoken $NGROK_AUTH_TOKEN
-        # Create a tunnel for RDP (Port 3389) with your custom hostname/subdomain
-        # Replace 'my-custom-pc-name' with your desired hostname (Requires an Ngrok static domain)
-        ngrok tcp 3389 --domain=my-custom-pc-name.ngrok-free.app &
         
-        # Keeps the GitHub Action running for 6 hours so it doesn't close
+        # Start the tunnel in the background
+        ngrok tcp 3389 &
+        
+        # Wait 5 seconds for the tunnel to establish
+        sleep 5
+        
+        # FIXED: Fetch and display the active endpoint URL inside the GitHub log
+        echo "=========================================="
+        echo "YOUR RDP ADDRESS IS BELOW:"
+        curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+        echo "=========================================="
+        
+        # Keeps the GitHub Action running for 6 hours
         sleep 21600 
